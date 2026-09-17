@@ -20,12 +20,12 @@ rather than retrofitted.
 
 ### Product & users
 
-|                    |                                                                                                                              |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Problem**        | Booking is phone-only; intake is paper; aftercare is forgotten; minor questions require a drive to the office.               |
-| **Primary user**   | Patients of one local US dental practice. Open signup — anyone can join and book, so the app doubles as patient acquisition. |
-| **Secondary user** | Clinic staff and dentists, on a desktop web dashboard.                                                                       |
-| **Must do well**   | Book a real, confirmed appointment without calling. Everything else is supporting cast.                                      |
+| | |
+|---|---|
+| **Problem** | Booking is phone-only; intake is paper; aftercare is forgotten; minor questions require a drive to the office. |
+| **Primary user** | Patients of one local US dental practice. Open signup — anyone can join and book, so the app doubles as patient acquisition. |
+| **Secondary user** | Clinic staff and dentists, on a desktop web dashboard. |
+| **Must do well** | Book a real, confirmed appointment without calling. Everything else is supporting cast. |
 
 ### Surfaces
 
@@ -59,8 +59,8 @@ patients. Staff features on mobile. Loyalty, referrals, gamification.
 Open app → Sign in with Apple/Google → Onboarding (4 short screens: who you are →
 medical history → what brings you in → notifications permission) → Home.
 
-The **aha moment** is the first booking: pick a service → pick a dentist → see _real
-available times_ → confirm → it's booked, no phone call. Everything before it is
+The **aha moment** is the first booking: pick a service → pick a dentist → see *real
+available times* → confirm → it's booked, no phone call. Everything before it is
 setup cost, so onboarding stays under 90 seconds and medical history is skippable
 with "I'll do this later" (surfaced again before the first appointment).
 
@@ -120,7 +120,6 @@ audit_log            actor_user_id, action, entity, entity_id, at
 ```
 
 **Validation & invariants**
-
 - `users.clerk_id` unique. Exactly one `is_self` patient per account.
 - An appointment's `ends_at` = `starts_at` + the service's `duration_minutes`, computed
   server-side. The client never sends a duration.
@@ -172,16 +171,16 @@ hits Drizzle directly, no HTTP hop.
 
 ### Third-party responsibilities
 
-| Service           | Owns                                                                            | Version                                                              |
-| ----------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **Clerk**         | Identity, Apple/Google OAuth, sessions, staff invites, role in `publicMetadata` | `@clerk/expo` 4.6.1, `@clerk/nextjs` 7.8.3                           |
-| **Neon Postgres** | All application data, source of truth                                           | `@neondatabase/serverless` 1.1.0, `drizzle-orm` 0.45.2               |
-| **Stream**        | Video/audio calls + chat messages and their storage                             | `@stream-io/video-react-native-sdk` 1.45.0, `stream-chat-expo` 9.8.2 |
-| **ImageKit**      | Image storage, transforms, CDN                                                  | `imagekit` 6.0.0                                                     |
-| **OpenAI**        | AI assistant completions                                                        | `openai` 7.8.0, model `gpt-4o-mini`                                  |
-| **Sentry**        | Error monitoring, both apps                                                     | `@sentry/react-native` 8.24.0, `@sentry/nextjs` 10.72.0              |
-| **Expo / EAS**    | Mobile runtime, builds, push delivery                                           | `expo` 57.0.18, `expo-router` 57.0.17                                |
-| **Vercel**        | Web hosting, API, cron                                                          | `next` 16.3.3                                                        |
+| Service | Owns | Version |
+|---|---|---|
+| **Clerk** | Identity, Apple/Google OAuth, sessions, staff invites, role in `publicMetadata` | `@clerk/expo` 4.6.1, `@clerk/nextjs` 7.8.3 |
+| **Neon Postgres** | All application data, source of truth | `@neondatabase/serverless` 1.1.0, `drizzle-orm` 0.45.2 |
+| **Stream** | Video/audio calls + chat messages and their storage | `@stream-io/video-react-native-sdk` 1.45.0, `stream-chat-expo` 9.8.2 |
+| **ImageKit** | Image storage, transforms, CDN | `imagekit` 6.0.0 |
+| **OpenAI** | AI assistant completions | `openai` 7.8.0, model `gpt-4o-mini` |
+| **Sentry** | Error monitoring, both apps | `@sentry/react-native` 8.24.0, `@sentry/nextjs` 10.72.0 |
+| **Expo / EAS** | Mobile runtime, builds, push delivery | `expo` 57.0.18, `expo-router` 57.0.17 |
+| **Vercel** | Web hosting, API, cron | `next` 16.3.3 |
 
 ### AI assistant behavior
 
@@ -202,7 +201,7 @@ Conversations persist in Postgres so the thread survives an app restart.
   fields in any breadcrumb or log line.
 - ImageKit: **private folder + signed expiring URLs** for patient dental photos; public
   folder for dentist headshots and clinic marketing images.
-- Push notification bodies are generic: _"You have an appointment tomorrow at 2:00 PM."_
+- Push notification bodies are generic: *"You have an appointment tomorrow at 2:00 PM."*
   Never the procedure, specialty, or dentist name — lock screens are a disclosure surface.
 - `audit_log` written on every staff read/write of `medical_histories` and `patients`.
 - Neon encryption at rest; DB pinned to a US region.
@@ -217,24 +216,24 @@ Conversations persist in Postgres so the thread survives an app restart.
 Each of these is a place you didn't give a firm answer and I picked a default. Correct
 any of them and I'll adjust.
 
-| #   | Assumption                                                                                                                                                                                                                                                                                                                                           | Why it's safe to change later                                                            |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| A1  | **Single clinic, single location, single timezone**, held in one `CLINIC_TZ` constant.                                                                                                                                                                                                                                                               | Multi-location means a `locations` table and location-scoped hours. Contained change.    |
-| A2  | **English only**, US date and time formats.                                                                                                                                                                                                                                                                                                          | No i18n framework in v1.                                                                 |
-| A3  | **Dependents have no login.** A parent manages child profiles from their own account.                                                                                                                                                                                                                                                                | If a teen needs their own login later, set `patients.account_user_id` to their new user. |
-| A4  | **15-minute slot granularity**, 2-hour minimum booking lead time.                                                                                                                                                                                                                                                                                    | Both are constants in `scheduling.ts`.                                                   |
-| A5  | **Bookings are instantly confirmed** — no staff approval step, since the app owns the calendar.                                                                                                                                                                                                                                                      | Adding a `pending` status is a one-enum change.                                          |
-| A6  | **Services and dentist working hours are seeded by us**, edited by staff in the dashboard. No self-service clinic setup wizard.                                                                                                                                                                                                                      |                                                                                          |
-| A7  | **Teleconsult join window** opens 5 min before and closes 30 min after `starts_at`.                                                                                                                                                                                                                                                                  | Constant.                                                                                |
-| A8  | **Reminders at 24h and 1h**, push only. Driven by Vercel Cron every 15 min with `reminder_*_sent_at` columns for idempotency.                                                                                                                                                                                                                        | If timing needs to be exact, swap Cron for Trigger.dev. Same columns.                    |
-| A9  | **Chat is one channel per patient**, id derived as `patient-{id}` — no channel table. Staff see a shared inbox, not per-dentist threads.                                                                                                                                                                                                             |                                                                                          |
-| A10 | **AI has no memory across conversations** beyond the current thread's messages.                                                                                                                                                                                                                                                                      |                                                                                          |
-| A11 | **`gpt-4o-mini`** at $0.15/$0.60 per 1M tokens. Expected spend well under $5/month at clinic scale. No token budget enforcement in v1.                                                                                                                                                                                                               | Model id is one constant.                                                                |
-| A12 | **No offline support.** The app requires connectivity and shows a clear offline state.                                                                                                                                                                                                                                                               | Dental booking is not an offline-first use case.                                         |
-| A13 | **Polling, not real-time**, for appointment status. Stream Chat is genuinely real-time on its own.                                                                                                                                                                                                                                                   |                                                                                          |
-| A14 | **npm workspaces** for the monorepo. Not pnpm: Expo's Metro can't resolve pnpm's symlinked layout, so an Expo monorepo needs `node-linker=hoisted` — which discards the strict-`node_modules` benefit that is pnpm's whole point. npm hoists natively and is already installed. No Turborepo or Nx either; two apps don't need a build orchestrator. |                                                                                          |
-| A15 | **The demo runs on seeded fake patients.** Real patient data waits for signed BAAs.                                                                                                                                                                                                                                                                  | This is what makes "demo-first" and "HIPAA matters" compatible.                          |
-| A16 | **Deployment: Vercel for web, EAS for mobile.** GitHub Actions runs typecheck + tests on push. No staging environment in v1 — a Neon branch serves as the dev DB.                                                                                                                                                                                    |                                                                                          |
+| # | Assumption | Why it's safe to change later |
+|---|---|---|
+| A1 | **Single clinic, single location, single timezone**, held in one `CLINIC_TZ` constant. | Multi-location means a `locations` table and location-scoped hours. Contained change. |
+| A2 | **English only**, US date and time formats. | No i18n framework in v1. |
+| A3 | **Dependents have no login.** A parent manages child profiles from their own account. | If a teen needs their own login later, set `patients.account_user_id` to their new user. |
+| A4 | **15-minute slot granularity**, 2-hour minimum booking lead time. | Both are constants in `scheduling.ts`. |
+| A5 | **Bookings are instantly confirmed** — no staff approval step, since the app owns the calendar. | Adding a `pending` status is a one-enum change. |
+| A6 | **Services and dentist working hours are seeded by us**, edited by staff in the dashboard. No self-service clinic setup wizard. | |
+| A7 | **Teleconsult join window** opens 5 min before and closes 30 min after `starts_at`. | Constant. |
+| A8 | **Reminders at 24h and 1h**, push only. Driven by Vercel Cron every 15 min with `reminder_*_sent_at` columns for idempotency. | If timing needs to be exact, swap Cron for Trigger.dev. Same columns. |
+| A9 | **Chat is one channel per patient**, id derived as `patient-{id}` — no channel table. Staff see a shared inbox, not per-dentist threads. | |
+| A10 | **AI has no memory across conversations** beyond the current thread's messages. | |
+| A11 | **`gpt-4o-mini`** at $0.15/$0.60 per 1M tokens. Expected spend well under $5/month at clinic scale. No token budget enforcement in v1. | Model id is one constant. |
+| A12 | **No offline support.** The app requires connectivity and shows a clear offline state. | Dental booking is not an offline-first use case. |
+| A13 | **Polling, not real-time**, for appointment status. Stream Chat is genuinely real-time on its own. | |
+| A14 | **npm workspaces** for the monorepo. Not pnpm: Expo's Metro can't resolve pnpm's symlinked layout, so an Expo monorepo needs `node-linker=hoisted` — which discards the strict-`node_modules` benefit that is pnpm's whole point. npm hoists natively and is already installed. No Turborepo or Nx either; two apps don't need a build orchestrator. | |
+| A15 | **The demo runs on seeded fake patients.** Real patient data waits for signed BAAs. | This is what makes "demo-first" and "HIPAA matters" compatible. |
+| A16 | **Deployment: Vercel for web, EAS for mobile.** GitHub Actions runs typecheck + tests on push. No staging environment in v1 — a Neon branch serves as the dev DB. | |
 
 ---
 
@@ -286,7 +285,6 @@ Phases are ordered so that something is demoable early and the risky part (sched
 lands before everything that depends on it.
 
 ### Phase 0 — Foundation
-
 - npm workspace: `apps/mobile`, `apps/web`, `packages/shared`.
 - `apps/web`: Next.js 16.3.3 App Router, Drizzle 0.45.2 + Neon, Sentry.
 - `apps/mobile`: Expo 57 + expo-router 57, Sentry.
@@ -294,7 +292,6 @@ lands before everything that depends on it.
 - **`PLAN.md` written to the project root**, carrying this spec forward for future sessions.
 
 ### Phase 1 — Schema & seed
-
 - Full Drizzle schema per the data model above, including the raw-SQL migration for the
   `EXCLUDE USING gist` constraint (Drizzle won't generate it; it goes in a hand-edited
   migration file).
@@ -302,23 +299,27 @@ lands before everything that depends on it.
   of fake patients so screens are never empty during the demo.
 
 ### Phase 2 — Auth
-
 - Clerk on both apps. Apple + Google providers only.
 - `POST /api/webhooks/clerk` — verify with `verifyWebhook`, sync `users`.
 - Role in `publicMetadata`, enforced in `apps/web/middleware.ts`. Staff invited from the
   Clerk dashboard.
 - Mobile: `@clerk/expo` 4.6.1 with token cache, expo-router protected routes.
+  Clerk app "Dentify" (`app_3IafLz8ynbSqP41ao10hlS3LvwX`). Sign-in is the browser SSO
+  flow (`useSSO`); Clerk's native module is excluded from Expo autolinking, since
+  linking it pulls the Clerk iOS SDK over SPM and raises the iOS floor to 17. Reverse
+  the exclude in `apps/mobile/package.json` and add the `@clerk/expo` config plugin if
+  the native sign-in sheets or `AuthView`/`UserButton` are ever wanted.
+  **Apple is not enabled yet** — it needs an Apple Developer Services ID + key in the
+  Clerk dashboard. Google works today.
 - Shared `requireAuth()` / `requireStaff()` helpers for Route Handlers — written once,
   used everywhere, so authorization is never re-implemented per route.
 
 ### Phase 3 — Onboarding
-
 - 4 screens, skippable medical history, progress persisted per step so a drop-out resumes.
 - Writes `patients` (`is_self: true`) + `medical_histories`.
 - Notification permission requested on the last screen, with a reason shown first.
 
 ### Phase 4 — Scheduling engine ← the critical phase
-
 - `apps/web/lib/scheduling.ts` with `availableSlots()` as specified.
 - `GET /api/availability?dentistId&serviceId&from&to`
 - `POST /api/appointments` — server computes `ends_at`, relies on the DB constraint,
@@ -329,27 +330,23 @@ lands before everything that depends on it.
   concurrent double-book. This is the one place tests are non-negotiable for v1.
 
 ### Phase 5 — Booking UX
-
 - Mobile: service picker → dentist picker → calendar with real slots → confirm → detail
   screen with cancel/reschedule.
 - Web dashboard: day and week views across dentists, click-through to the patient record
   (intake, medical history, visit timeline), manual block-out and cancel.
 
 ### Phase 6 — Teleconsult
-
 - `POST /api/stream/token` issues user tokens server-side.
 - Call id `appointment-{id}`; join gated to the T-5min → T+30min window on the server.
 - Stream Video RN SDK in mobile, Stream Video React SDK on the dashboard.
 - **Requires an EAS dev build — do this before starting the phase, not during.**
 
 ### Phase 7 — Chat
-
 - Stream Chat, channel `patient-{id}`, members = the patient + the staff team.
 - Photo attachments upload to ImageKit's private folder via server-signed params; the
   message carries a signed URL.
 
 ### Phase 8 — AI assistant
-
 - `POST /api/ai/chat` — streams from `gpt-4o-mini`, persists to `ai_conversations` /
   `ai_messages`.
 - Emergency keyword check runs **before** the model call and returns the hard-coded card.
@@ -357,25 +354,21 @@ lands before everything that depends on it.
 - Persistent disclaimer in the chat UI header.
 
 ### Phase 9 — Visit history & post-op notes
-
 - Patient timeline of past appointments with their `visit_notes`.
 - Staff compose notes from the appointment detail view on the dashboard.
 
 ### Phase 10 — Family members
-
 - Add/edit dependent profiles from the mobile profile screen.
 - A "who is this for?" step enters the booking flow; home shows appointments across the
   whole family.
 
 ### Phase 11 — Push reminders
-
 - `push_tokens` registration on login and on token refresh.
 - `/api/cron/reminders` every 15 min: find appointments in the 24h and 1h windows with a
   null `reminder_*_sent_at`, send generic-body pushes, stamp the column.
 - Teleconsult T-5min "join now" push in the same job.
 
 ### Phase 12 — Harden & ship the demo
-
 - Sentry PHI scrubbing verified by deliberately triggering an error with a patient loaded.
 - `audit_log` writes wired into every staff PHI access path.
 - Empty states, offline state, and error states on every screen.
@@ -394,7 +387,6 @@ confirm simultaneously. Exactly one succeeds; the other sees "just taken." Then 
 in `psql` that only one `booked` row exists for that dentist and range.
 
 **End-to-end demo script** — run this before showing the clinic:
-
 1. Fresh signup with Apple → onboarding → land on home.
 2. Book a cleaning → verify the slot disappears for other users and appears on the staff
    dashboard.
