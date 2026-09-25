@@ -1,5 +1,3 @@
-const step1 = () => {
-  return <div>step1</div>;
-};
+import {} from "@/components/onboarding";
 
-export default step1;
+export default function Step1() {}
