@@ -1,7 +1,7 @@
 // Run: node --experimental-strip-types src/lib/dob.test.ts
 import { dobError, formatDob, isValidDob } from "./dob.ts";
 
-const NOW = new Date(2026, 9, 28); // 2026-08-29, so years run 1906..2026
+const NOW = new Date(2026, 7, 29); // 2026-08-29, so years run 1906..2026
 const mask = (input: string) => formatDob(input, NOW);
 
 const eq = (got: unknown, want: unknown, what: string) => {
